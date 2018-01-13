@@ -1,4 +1,4 @@
-﻿//Unity Integration with TouchOSC Bridge
+//Unity Integration with TouchOSC Bridge
 //TouchOSC Bridge can be found at https://hexler.net/software/touchosc
 //Author: Hazel Mora, http://hazelthings.com/osckit
 //Sources: https://www.nyu.edu/classes/bello/FMT_files/9_MIDI_code.pdf, http://opensoundcontrol.org/spec-1_0
@@ -8,7 +8,7 @@ using System.Net.Sockets;
 
 public class TouchOSCBridge : MonoBehaviour {
 
-    public string server = "127.0.0.1";
+    public string host = "127.0.0.1";
     public int port = 12101;    //Default for TouchOSC Bridge. Wouldn't recommend changing this.
     public enum MidiMessageType { NoteOff = 0x80, NoteOn = 0x90, PolyphonicAftertouch = 0xA0, ControlChange = 0xB0, ProgramChange = 0xC0, ChannelAftertouch = 0xD0, PitchWheel = 0xE0 };
 
@@ -17,7 +17,9 @@ public class TouchOSCBridge : MonoBehaviour {
 	void Start () {
         udpClient = new UdpClient(0);
         try {
-            udpClient.Connect(server, port);
+            host = PlayerPrefs.GetString("Host Address");
+            udpClient.Connect(host, port);
+            Debug.Log("MIDI Host Connected:" + host);
         }
         catch (System.Exception e) {
             Debug.Log(e.ToString());
@@ -34,12 +36,13 @@ public class TouchOSCBridge : MonoBehaviour {
             return;
         }
 
-        message[13] = (byte)type;
-        message[13] += (byte)(channel - 1);
+        message[15] = (byte)type;
+        message[15] += (byte)(channel - 1);
         message[14] = (byte)data1;
-        message[15] = (byte)data2;
+        message[13] = (byte)data2;
 
         udpClient.Send(message, 16);
+        Debug.Log("Midi Message Sent!");
     }
 
     void OnApplicationQuit() {
